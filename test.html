@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    .main{
+        background-color: aliceblue;
+        position: absolute;
+        width: 100%;
+        min-height: 100%;
+        align-items: center;
+        display: flex;
+        flex-flow: column;
+        margin: 0;
+        padding: 0;
+    }
+    .title{
+        height: 50px;
+        align-self: flex-start;
+        margin-left: 20px;
+    }
+    .search{
+        margin-top: 100px;
+        align-self: flex-start;
+        width: 1000px;
+        height: 36px;
+        display: flex;
+        align-items: center;        
+    }
+    .stip{
+        margin-top: 190px;
+        position: absolute;
+        align-self: flex-start;
+        margin-left: 100px;
+        width: 240px;
+        padding: 0;
+    }
+    .ftip{
+        margin-top: 190px;
+        position: absolute;
+        align-self: flex-start;
+        margin-left: 450px;
+        width: 240px;
+        padding: 0;
+    }
+    .poi{
+        margin: 0;
+        height: 20px;
+        font-size: 14px;
+        color: gray;
+        width: 100%;
+        background-color: white;
+        border:1px solid #9ba4b0;
+        cursor: pointer;
+        overflow: hidden;
+        
+    }
+    .lo{
+        width: 240px;
+        height: 36px;
+        border-radius: 5px;
+    }
+    .btn{
+        background-color: aqua;
+        width: 100px;
+        height: 36px;
+        border-radius: 5px;
+    }
+    .map{
+        width: 100%;
+        padding: 0;
+        margin: 0;
+    }
+    .item{
+        height: 20px;
+        font-size: 14px;
+        color:gray;
+    }
+    .ul{
+        margin-top: 50px;
+        padding: 0;   
+    }
+</style>
+<body>
+    <div class="main">
+        <div class="stip" id="stip">
+            
+        </div>
+        <div class="ftip" id="ftip">
+            
+        </div>
+        <div class="title" id="title"></div>
+        <div class="search">
+            <input class="lo" id="start" placeholder="起始" oninput="starttip()"style="margin-left: 100px;">
+            <input class="lo" id="final" placeholder="终点" oninput="finaltip()" style="margin-left: 100px;">
+            <input value="确定" id="btn" class="btn" type="button"style="margin-left: 100px;" onclick="draw()"></input>
+        </div>       
+        <img id="img" style="margin-top: 100px;" >
+        <ul id="ul" style="align-self:flex-start;margin-left: 100px;">
+            
+        </ul>
+    </div>
+    <script src="http://pv.sohu.com/cityjson?ie=utf-8"></script>
+    <script>
+        const key="4eddd793283e86a6993b2bfbd1f2d407";
+        var route='';
+        var start=document.getElementById("start");
+        var final=document.getElementById("final");
+        var stip=document.getElementById("stip");
+        var ftip=document.getElementById("ftip")
+        var ul=document.getElementById("ul");
+        var startl=-1;
+        var finall=-1;
+        getcur();
+        
+        function getcur(){
+            var xhttp= new XMLHttpRequest();
+            xhttp.onreadystatechange=function(){
+                if(this.readyState==4&&this.status==200){
+                    var data=JSON.parse(this.responseText);
+                    document.getElementById("title").innerHTML="你所在地区为"+data.city+data.district;
+                    document.getElementById("img").src="https://restapi.amap.com/v3/staticmap?markers=mid,0xFF0000,A:"+data.location+"&key=4eddd793283e86a6993b2bfbd1f2d407"
+                }
+            }
+            xhttp.open("GET","https://restapi.amap.com/v5/ip?type=4&key="+key+"&ip="+returnCitySN.cip,true);
+            xhttp.send();
+        }
+        function starttip(){
+            startl=-1;
+            stip.innerHTML='';
+            var xhttp=new XMLHttpRequest();
+            xhttp.onreadystatechange=function(){
+                if(this.readyState==4&&this.status==200){
+                    var data=JSON.parse(this.responseText);
+                    var length=data.tips.length;
+                    if (length>5)length=5;
+                    for(var i=0;i<length;i++){
+                    var div=document.createElement("div");
+                    div.className='poi';
+                    div.id=data.tips[i].location;
+                    div.innerHTML=data.tips[i].name;
+                    stip.insertBefore(div,stip.children[0]);
+                    div.addEventListener("click",function(){
+                        startl=this.id;
+                        start.value=this.innerHTML;
+                        stip.innerHTML='';
+                        
+                    });
+                }
+                }           
+            }
+            xhttp.open("GET","https://restapi.amap.com/v3/assistant/inputtips?city="+returnCitySN.cid+"&keywords="+start.value+"&key="+key,true);
+            xhttp.send();
+        }
+        function finaltip(){
+            finall=-1;
+            ftip.innerHTML='';
+            var xhttp=new XMLHttpRequest();
+            xhttp.onreadystatechange=function(){
+                if(this.readyState==4&&this.status==200){
+                    var data=JSON.parse(this.responseText);
+                    var length=data.tips.length;
+                    if (length>5)length=5;
+                    for(var i=0;i<length;i++){
+                        var div=document.createElement("div");
+                        div.className='poi';
+                        div.id=data.tips[i].location;
+                        div.innerHTML=data.tips[i].name;
+                        ftip.insertBefore(div,ftip.children[0]);
+                        div.addEventListener("click",function(){
+                            finall=this.id;
+                            final.value=this.innerHTML;
+                            ftip.innerHTML=''
+                            
+                    });
+                    }
+                }           
+            }
+            xhttp.open("GET","https://restapi.amap.com/v3/assistant/inputtips?city="+returnCitySN.cid+"&keywords="+final.value+"&key="+key,true);
+            xhttp.send();
+        }
+
+        function checkstart(){
+            if(startl==-1){
+                getlocation(start.value,function(loc){
+                    startl=loc;
+                });
+            }
+        }
+        function checkfinal(){
+            if(finall==-1){
+                getlocation(final.value,function(loc){
+                    finall=loc
+                })
+            }
+        }
+        function getroute(){
+            if(start.value==''||final.value==''){
+                alert("初始位置或终点不能为空");
+                return;
+            }
+            ul.innerHTML='';
+            var xhttp=new XMLHttpRequest();
+            xhttp.onreadystatechange=function(){
+                if(this.readyState==4&&this.status==200){
+                    var data=JSON.parse(this.responseText);  
+                    for(var i=0;i<data.route.paths[0].steps.length;i++){
+                        var li=document.createElement("li");
+                        li.className='item';
+                        li.innerHTML=data.route.paths[0].steps[i].instruction;
+                        ul.insertBefore(li,ul.children[0]);
+                        route+=data.route.paths[0].steps[i].polyline+";";
+                    }
+                    route=route.substr(0,route.length-1);
+                    document.getElementById("img").src="https://restapi.amap.com/v3/staticmap?zoom=15&size=500*500&paths=10,0x0000ff,1,,:"+route+"&key="+key
+                    var div=document.createElement("div");
+                    div.className="item";
+                    div.innerHTML="总距离为"+data.route.paths[0].distance+"米"+",预计需要"+data.route.paths[0].duration+"秒";
+                    ul.insertBefore(div,ul.children[0]);
+                }
+            }
+            xhttp.open("GET","https://restapi.amap.com/v3/direction/walking?origin="+startl+"&destination="+finall+"&key="+key,true)
+            xhttp.send();
+        }
+        function draw(){
+            checkstart();
+            checkfinal();
+            getroute();
+        }
+        function getlocation(value,callback){
+            var xhttp=new XMLHttpRequest();
+            xhttp.onreadystatechange=function(){
+                if(this.readyState==4&&this.status==200){
+                    var data=JSON.parse(this.responseText);
+                    callback(data.pois[0].location);
+                }
+            }
+            
+            xhttp.open("GET","https://restapi.amap.com/v3/place/text?keywords="+value+"&city="+returnCitySN.cid+"&offset=20&page=1&key="+key+"&extensions=all",true);
+            xhttp.send();  
+        }
+        function drawmap(){
+            var xhttp=new XMLHttpRequest();
+            xhttp.onreadystatechange=function(){
+                if(this.readyState==4&&this.status==200){
+
+                }
+            }
+            xhttp.open("GET","https://restapi.amap.com/v3/staticmap?zoom=15&size=500*500&paths=10,0x0000ff,1,,:"+route+"&key="+key,true)
+            xhttp.send();
+        }
+    </script>
+</body>
+</html>
