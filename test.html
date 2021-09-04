@@ -116,7 +116,7 @@
         var startl=-1;
         var finall=-1;
         getcur();
-        
+        //初始化电脑所在地点以及地图,根据ip定位非常不精确
         function getcur(){
             var xhttp= new XMLHttpRequest();
             xhttp.onreadystatechange=function(){
@@ -129,6 +129,7 @@
             xhttp.open("GET","https://restapi.amap.com/v5/ip?type=4&key="+key+"&ip="+returnCitySN.cip,true);
             xhttp.send();
         }
+        //起始点的提示输入
         function starttip(){
             startl=-1;
             stip.innerHTML='';
@@ -156,6 +157,7 @@
             xhttp.open("GET","https://restapi.amap.com/v3/assistant/inputtips?city="+returnCitySN.cid+"&keywords="+start.value+"&key="+key,true);
             xhttp.send();
         }
+        //终点的提示输入
         function finaltip(){
             finall=-1;
             ftip.innerHTML='';
@@ -183,7 +185,7 @@
             xhttp.open("GET","https://restapi.amap.com/v3/assistant/inputtips?city="+returnCitySN.cid+"&keywords="+final.value+"&key="+key,true);
             xhttp.send();
         }
-
+        //检查起始点是否已有坐标,没有就进行poi搜索
         function checkstart(){
             if(startl==-1){
                 getlocation(start.value,function(loc){
@@ -191,6 +193,7 @@
                 });
             }
         }
+        //检查终点是否已有坐标,没有就进行poi搜索
         function checkfinal(){
             if(finall==-1){
                 getlocation(final.value,function(loc){
@@ -198,6 +201,7 @@
                 })
             }
         }
+        //得到步行路径并且显示地图
         function getroute(){
             if(start.value==''||final.value==''){
                 alert("初始位置或终点不能为空");
@@ -216,21 +220,25 @@
                         route+=data.route.paths[0].steps[i].polyline+";";
                     }
                     route=route.substr(0,route.length-1);
-                    document.getElementById("img").src="https://restapi.amap.com/v3/staticmap?zoom=15&size=500*500&paths=10,0x0000ff,1,,:"+route+"&key="+key
+                    var zoom=getzoom(parseInt(data.route.paths[0].distance));
+                    document.getElementById("img").src="https://restapi.amap.com/v3/staticmap?scale=2&zoom="+zoom+"&paths=10,0x0000ff,1,,:"+route+"&key="+key
                     var div=document.createElement("div");
                     div.className="item";
                     div.innerHTML="总距离为"+data.route.paths[0].distance+"米"+",预计需要"+data.route.paths[0].duration+"秒";
                     ul.insertBefore(div,ul.children[0]);
                 }
             }
+            alert("目前只有步行的路径距离不能超过100km")
             xhttp.open("GET","https://restapi.amap.com/v3/direction/walking?origin="+startl+"&destination="+finall+"&key="+key,true)
             xhttp.send();
         }
+        //确定键的点击事件
         function draw(){
             checkstart();
             checkfinal();
             getroute();
         }
+        //根据地点进行poi搜索
         function getlocation(value,callback){
             var xhttp=new XMLHttpRequest();
             xhttp.onreadystatechange=function(){
@@ -243,15 +251,28 @@
             xhttp.open("GET","https://restapi.amap.com/v3/place/text?keywords="+value+"&city="+returnCitySN.cid+"&offset=20&page=1&key="+key+"&extensions=all",true);
             xhttp.send();  
         }
-        function drawmap(){
-            var xhttp=new XMLHttpRequest();
-            xhttp.onreadystatechange=function(){
-                if(this.readyState==4&&this.status==200){
 
-                }
-            }
-            xhttp.open("GET","https://restapi.amap.com/v3/staticmap?zoom=15&size=500*500&paths=10,0x0000ff,1,,:"+route+"&key="+key,true)
-            xhttp.send();
+        //根据两点的距离确定zoom  
+        function getzoom(distance){
+            var zoom=17;
+            if(distance>=300)zoom=16;
+            if(distance>=600)zoom=15;
+            if(distance>=1500)zoom=14;
+            if(distance>=3000)zoom=13;
+            if(distance>=6000)zoom=12;
+            if(distance>=15000)zoom=11;
+            if(distance>=30000)zoom=10;
+            if(distance>=60000)zoom=9;
+            if(distance>=90000)zoom=8;
+            if(distance>=150000)zoom=7;
+            if(distance>=300000)zoom=6;
+            if(distance>=600000)zoom=5;
+            if(distance>=1500000)zoom=4;
+            if(distance>=3000000)zoom=3;
+            if(distance>=6000000)zoom=2;
+            if(distance>=9000000)zoom=1;
+            return zoom;
+            
         }
     </script>
 </body>
